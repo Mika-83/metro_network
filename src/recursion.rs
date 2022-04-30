@@ -88,6 +88,26 @@ fn append<T: Clone+Copy>(lst1: Vec<T>, lst2: Vec<T>) -> Vec<T> {
     res
 }
 
+
+#[warn(dead_code)]
+fn merge(lst1: Vec<i32>, lst2: Vec<i32>) -> Vec<i32> {
+    let res = match (lst1.len(), lst2.len()) {
+        (0, 0) => Vec::<i32>::new(),
+        (0, _) => lst2,
+        (_, 0) => lst1,
+        (_, _) => {
+            let a = lst1[0];
+            let b = lst2[0];
+            if a <= b {
+                append(vec![a], merge(lst1[1..].to_vec(), lst2))
+            } else {
+                append(vec![b], merge(lst1, lst2[1..].to_vec()))
+            }
+        }
+    };
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use std::vec;
@@ -172,5 +192,25 @@ mod tests {
     #[test]
     fn append_5() {
         assert_eq!(append(vec!['a'], vec!['b']), vec!['a', 'b'])
+    }
+    #[test]
+    fn merge_1() {
+        assert_eq!(merge(Vec::<i32>::new(), Vec::<i32>::new()), Vec::<i32>::new())
+    }
+    #[test]
+    fn merge_2() {
+        assert_eq!(merge(Vec::<i32>::new(), vec![1]), vec![1])
+    }
+    #[test]
+    fn merge_3() {
+        assert_eq!(merge(vec![1], Vec::<i32>::new()), vec![1])
+    }
+    #[test]
+    fn merge_4() {
+        assert_eq!(merge(vec![1, 3], vec![2, 4]), vec![1, 2, 3, 4])
+    }
+    #[test]
+    fn merge_5() {
+        assert_eq!(merge(vec![1, 3], vec![1, 2]), vec![1, 1, 2, 3])
     }
 }
