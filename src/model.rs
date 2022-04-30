@@ -1,12 +1,12 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Node {
-    kanji: String,
-    kana: String,
-    roman: String,
-    shozoku: String,
+    pub kanji: String,
+    pub kana: String,
+    pub roman: String,
+    pub shozoku: String,
 }
 
 pub fn read(path: &str) -> BufReader<File> {
@@ -23,21 +23,21 @@ pub fn read_node(reader: BufReader<File>) -> Vec<Node> {
         let line = line_.unwrap();
         let l: Vec<&str> = line.split(',').collect();
         lines.push(Node {
-            kanji: String::from(l[0]),
-            kana: String::from(l[1]),
-            roman: String::from(l[2]),
-            shozoku: String::from(l[3]),
+            kanji: String::from(l[0]).replace(' ', ""),
+            kana: String::from(l[1]).replace(' ', ""),
+            roman: String::from(l[2]).replace(' ', ""),
+            shozoku: String::from(l[3]).replace(' ', ""),
         })
     }
     lines
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Edge {
-    tail: String,
-    head: String,
-    line: String,
-    dist: f32,
-    time: usize,
+    pub tail: String,
+    pub head: String,
+    pub line: String,
+    pub dist: f32,
+    pub time: usize,
 }
 
 pub fn read_edge(reader: BufReader<File>) -> Vec<Edge> {
