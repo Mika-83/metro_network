@@ -1,6 +1,6 @@
 #[warn(dead_code)]
 fn add_to_each(n: i32, lst: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
-    let res = match lst.len() {
+    match lst.len() {
         0 => Vec::<Vec<i32>>::new(),
         _ => {
             let mut first = vec![n];
@@ -10,13 +10,12 @@ fn add_to_each(n: i32, lst: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
             answer.append(&mut rest);
             answer
         },
-    };
-    res
+    }
 }
 
 #[warn(dead_code)]
 fn prefix(lst: Vec<i32>) -> Vec<Vec<i32>> {
-    let res = match lst.len() {
+    match lst.len() {
         0 => Vec::<Vec<i32>>::new(),
         _ => {
             let mut first = vec![vec![lst[0]]];
@@ -24,8 +23,7 @@ fn prefix(lst: Vec<i32>) -> Vec<Vec<i32>> {
             first.append(&mut rest);
             first
         },
-    };
-    res
+    }
 }
 
 // probpem 10.1
@@ -59,7 +57,7 @@ fn ins_sort(lst: Vec<i32>) -> Vec<i32> {
 
 #[warn(dead_code)]
 fn minimum(lst: Vec<i32>) -> i32 {
-    let res = match lst.len() {
+    match lst.len() {
         0 => i32::MAX,
         _ => {
             let m = minimum(lst[1..].to_vec());
@@ -69,13 +67,12 @@ fn minimum(lst: Vec<i32>) -> i32 {
                 m
             }
         }
-    };
-    res
+    }
 }
 
 #[warn(dead_code)]
 fn append<T: Clone+Copy>(lst1: Vec<T>, lst2: Vec<T>) -> Vec<T> {
-    let res = match lst1.len() {
+    match lst1.len() {
         0 => lst2,
         _ => {
             let first = lst1[0];
@@ -84,14 +81,13 @@ fn append<T: Clone+Copy>(lst1: Vec<T>, lst2: Vec<T>) -> Vec<T> {
             ret.append(&mut append(rest, lst2));
             ret
         }
-    };
-    res
+    }
 }
 
 
 #[warn(dead_code)]
 fn merge(lst1: Vec<i32>, lst2: Vec<i32>) -> Vec<i32> {
-    let res = match (lst1.len(), lst2.len()) {
+    match (lst1.len(), lst2.len()) {
         (0, 0) => Vec::<i32>::new(),
         (0, _) => lst2,
         (_, 0) => lst1,
@@ -104,8 +100,7 @@ fn merge(lst1: Vec<i32>, lst2: Vec<i32>) -> Vec<i32> {
                 append(vec![b], merge(lst1, lst2[1..].to_vec()))
             }
         }
-    };
-    res
+    }
 }
 
 #[cfg(test)]
