@@ -46,31 +46,31 @@ mod tests {
     use super::*;
     use crate::model::*;
     #[test]
-    fn test_romaji_to_kanji_1() {
+    fn romaji_to_kanji_1() {
         let lst = read_node(read("data/eki.csv"));
         assert_eq!(romaji_to_kanji(&lst, &String::from("osaka")), "".to_string())
     }
     #[test]
-    fn test_romaji_to_kanji_2() {
+    fn romaji_to_kanji_2() {
         let lst = read_node(read("data/eki.csv"));
         assert_eq!(romaji_to_kanji(&lst, &String::from("hongosanchome")), "本郷三丁目".to_string())
     }
     #[test]
-    fn test_get_ekikan_kyori_1(){
+    fn get_ekikan_kyori_1(){
         let lst = read_edge(read("data/ekikan.csv"));
         let tail = String::from("大阪");
         let head = String::from("代々木公園");
         assert_eq!(get_ekikan_kyori(&lst, &tail, &head), f32::INFINITY)
     }
     #[test]
-    fn test_get_ekikan_kyori_2(){
+    fn get_ekikan_kyori_2(){
         let lst = read_edge(read("data/ekikan.csv"));
         let tail = String::from("代々木公園");
         let head = String::from("代々木上原");
         assert_eq!(get_ekikan_kyori(&lst, &tail ,&head), 1.0)
     }
     #[test]
-    fn test_kyori_no_hyouji_1() {
+    fn kyori_no_hyouji_1() {
         let lst_node = read_node(read("data/eki.csv"));
         let lst_edge = read_edge(read("data/ekikan.csv"));
         let tail = String::from("osaka");
@@ -78,7 +78,7 @@ mod tests {
         assert_eq!(kyori_no_hyouji(&lst_node, &lst_edge, &tail, &head), format!("{}という駅は存在しません", tail))
     }
     #[test]
-    fn test_kyori_no_hyouji_2() {
+    fn kyori_no_hyouji_2() {
         let lst_node = read_node(read("data/eki.csv"));
         let lst_edge = read_edge(read("data/ekikan.csv"));
         let tail = String::from("yoyogiuehara");
@@ -86,7 +86,7 @@ mod tests {
         assert_eq!(kyori_no_hyouji(&lst_node, &lst_edge, &tail, &head), "代々木上原から代々木公園までは1.0kmです".to_string())
     }
     #[test]
-    fn test_kyori_no_hyouji_3() {
+    fn kyori_no_hyouji_3() {
         let lst_node = read_node(read("data/eki.csv"));
         let lst_edge = read_edge(read("data/ekikan.csv"));
         let tail = String::from("osaka");
@@ -94,7 +94,7 @@ mod tests {
         assert_eq!(kyori_no_hyouji(&lst_node, &lst_edge, &tail, &head), "osakaとkyotoという駅は存在しません".to_string())
     }
     #[test]
-    fn test_kyori_no_hyouji_4() {
+    fn kyori_no_hyouji_4() {
         let lst_node = read_node(read("data/eki.csv"));
         let lst_edge = read_edge(read("data/ekikan.csv"));
         let tail = String::from("yoyogiuehara");

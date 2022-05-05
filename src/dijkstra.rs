@@ -74,7 +74,7 @@ fn seiretsu(lst: Vec<Node>) -> Vec<Node> {
     }
 }
 
-fn koushin(p: EkiT, mut q: EkiT, dist: f32) -> EkiT {
+fn koushin1(p: EkiT, mut q: EkiT, dist: f32) -> EkiT {
     let d: f32 = p.shortest_dist + dist;
     if d < q.shortest_dist {
         q.shortest_dist = d;
@@ -204,7 +204,7 @@ mod tests {
         };
         let tail = p.name.clone();
         let head = q.name.clone();
-        assert_eq!(koushin(p, q, get_ekikan_kyori(&lst, &tail, &head)), expected)
+        assert_eq!(koushin1(p, q, get_ekikan_kyori(&lst, &tail, &head)), expected)
     }
     #[test]
     fn test_koushin_2() {
@@ -232,6 +232,6 @@ mod tests {
         };
         let tail = p.name.clone();
         let head = q.name.clone();
-        assert_eq!(koushin(p, q, get_ekikan_kyori(&lst, &tail, &head)), expected)
+        assert_eq!(koushin1(p, q, get_ekikan_kyori(&lst, &tail, &head)), expected)
     }
 }
