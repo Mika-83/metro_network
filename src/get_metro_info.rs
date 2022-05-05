@@ -11,7 +11,7 @@ fn romaji_to_kanji(lst: &Vec<Node>, name: &String) -> String {
     }
 }
 
-fn get_ekikan_kyori(lst: &Vec<Edge>, tail: &String, head: &String) -> f32 {
+pub fn get_ekikan_kyori(lst: &Vec<Edge>, tail: &String, head: &String) -> f32 {
     if lst.is_empty() {
         f32::INFINITY
     } else if (tail, head) == (&lst[0].tail, &lst[0].head) || (tail, head) == (&lst[0].head, &lst[0].tail) {
