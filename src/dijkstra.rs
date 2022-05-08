@@ -98,7 +98,7 @@ fn koushin1(p: &EkiT, q: &EkiT, dist: f32) -> EkiT {
     res
 }
 
-fn koushin(p: EkiT, v: Vec<EkiT>, lst: Vec<Edge>) -> Vec<EkiT> {
+fn koushin(p: EkiT, v: Vec<EkiT>, lst: &Vec<Edge>) -> Vec<EkiT> {
     fn koushin1(p: &EkiT, q: &EkiT, dist: f32) -> EkiT {
         let d: f32 = p.shortest + dist;
         let mut res = EkiT::new(q.name.clone());
@@ -153,12 +153,25 @@ fn sum_list(lst: Vec<i32>) -> Vec<i32> {
     hojo(lst, 0)
 }
 
-fn dijkstra() {}
+fn dijkstra_main(lst: Vec<EkiT>, lst_ekikan: &Vec<Edge>) -> Vec<EkiT> {
+    match lst.len() {
+        0 => Vec::<EkiT>::new(),
+        _ => {
+            let (closest_node, lst_rest) = saitan_wo_bunri(lst);
+            let mut res = vec![closest_node.clone()];
+            res.append(&mut dijkstra_main(
+                koushin(closest_node, lst_rest, &lst_ekikan),
+                &lst_ekikan
+            ));
+            res
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use crate::get_metro_info::get_ekikan_kyori;
-    use crate::model::{read, read_node, Edge};
+    use crate::model::{read, read_edge, read_node, Edge};
 
     use super::*;
 
@@ -342,7 +355,7 @@ mod tests {
             shortest: 1.5,
             prevs: vec!["原宿".to_string()],
         }];
-        assert_eq!(koushin(p, lst, lst_dist), expected)
+        assert_eq!(koushin(p, lst, &lst_dist), expected)
     }
     #[test]
     fn koushin_2() {
@@ -356,7 +369,7 @@ mod tests {
             dist: 1.0,
             time: 30,
         }];
-        assert_eq!(koushin(p, lst, lst_dist), expected)
+        assert_eq!(koushin(p, lst, &lst_dist), expected)
     }
     #[test]
     fn koushin_3() {
@@ -388,7 +401,7 @@ mod tests {
                 prevs: vec!["原宿".to_string()],
             },
         ];
-        assert_eq!(koushin(p, lst, lst_dist), expected)
+        assert_eq!(koushin(p, lst, &lst_dist), expected)
     }
 
     #[test]
@@ -449,5 +462,74 @@ mod tests {
         let v = vec![3, 2, 1, 4];
         let expected = vec![3, 5, 6, 10];
         assert_eq!(sum_list(v), expected)
+    }
+    #[test]
+    fn dijkstra_main_1() {
+        let lst_ekikan = read_edge(read("data/ekikan.csv"));
+        let lst = vec![
+            EkiT::new("代々木公園".to_string()),
+            EkiT::new("明治神宮前".to_string()),
+            EkiT::new("表参道".to_string()),
+        ];
+        let lst = shokika(lst, &"代々木公園".to_string());
+        let expect = vec![
+            EkiT {
+                name: "代々木公園".to_string(),
+                shortest: 0.0,
+                prevs: vec!["代々木公園".to_string()],
+            },
+            EkiT {
+                name: "明治神宮前".to_string(),
+                shortest: 1.2,
+                prevs: vec!["代々木公園".to_string()],
+            },
+            EkiT {
+                name: "表参道".to_string(),
+                shortest: 2.1,
+                prevs: vec!["明治神宮前".to_string()],
+            },
+        ];
+        assert_eq!(dijkstra_main(lst, &lst_ekikan), expect)
+    }
+    #[test]
+    fn dijkstra_main_2() {
+        let lst_ekikan = Vec::<Edge>::new();
+        let lst = Vec::<EkiT>::new();
+        let expect = Vec::<EkiT>::new();
+        assert_eq!(dijkstra_main(lst, &lst_ekikan), expect)
+    }
+    #[test]
+    fn dijkstra_main_3() {
+        let lst_ekikan = read_edge(read("data/ekikan.csv"));
+        let lst = vec![
+            EkiT::new("代々木公園".to_string()),
+            EkiT::new("明治神宮前".to_string()),
+            EkiT::new("京橋".to_string()),
+            EkiT::new("表参道".to_string())
+        ];
+        let lst = shokika(lst, &"代々木公園".to_string());
+        let expect = vec![
+            EkiT {
+                name: "代々木公園".to_string(),
+                shortest: 0.0,
+                prevs: vec!["代々木公園".to_string()],
+            },
+            EkiT {
+                name: "明治神宮前".to_string(),
+                shortest: 1.2,
+                prevs: vec!["代々木公園".to_string()],
+            },
+            EkiT {
+                name: "表参道".to_string(),
+                shortest: 2.1,
+                prevs: vec!["明治神宮前".to_string()],
+            },
+            EkiT{
+                name: "京橋".to_string(),
+                shortest: f32::INFINITY,
+                prevs: vec![],
+            }
+        ];
+        assert_eq!(dijkstra_main(lst, &lst_ekikan), expect)
     }
 }
