@@ -1,4 +1,7 @@
-use crate::model::Node;
+use crate::{
+    get_metro_info::get_ekikan_kyori,
+    model::{Edge, Node},
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct EkiT {
@@ -10,7 +13,7 @@ pub struct EkiT {
 impl EkiT {
     pub fn new(name: String) -> EkiT {
         EkiT {
-            name: name,
+            name,
             shortest: f32::INFINITY,
             prevs: Vec::<String>::new(),
         }
@@ -18,7 +21,9 @@ impl EkiT {
 }
 
 fn make_eki_list(lst: &Vec<Node>) -> Vec<EkiT> {
-    lst.iter().map(|n| EkiT::new(n.kanji.clone())).collect::<Vec<EkiT>>()
+    lst.iter()
+        .map(|n| EkiT::new(n.kanji.clone()))
+        .collect::<Vec<EkiT>>()
 }
 
 fn shokika(mut lst: Vec<EkiT>, name: &String) -> Vec<EkiT> {
@@ -39,9 +44,17 @@ fn shokika(mut lst: Vec<EkiT>, name: &String) -> Vec<EkiT> {
 }
 
 fn make_initial_eki_list(lst: &Vec<Node>, name: &String) -> Vec<EkiT> {
-    let f = |x: &Node| {if &x.kanji == name {
-        EkiT{name: x.kanji.clone(), shortest: 0.0, prevs: vec![x.kanji.clone()]}
-    } else {EkiT::new(x.kanji.clone())}};
+    let f = |x: &Node| {
+        if &x.kanji == name {
+            EkiT {
+                name: x.kanji.clone(),
+                shortest: 0.0,
+                prevs: vec![x.kanji.clone()],
+            }
+        } else {
+            EkiT::new(x.kanji.clone())
+        }
+    };
     lst.into_iter().map(f).collect::<Vec<EkiT>>()
 }
 
@@ -75,23 +88,32 @@ fn seiretsu(lst: Vec<Node>) -> Vec<Node> {
     }
 }
 
-fn koushin1(p: EkiT, mut q: EkiT, dist: f32) -> EkiT {
+fn koushin1(p: &EkiT, q: &EkiT, dist: f32) -> EkiT {
     let d: f32 = p.shortest + dist;
+    let mut res = EkiT::new(q.name.clone());
     if d < q.shortest {
-        q.shortest = d;
-        q.prevs = vec![p.name.clone()];
+        res.shortest = d;
+        res.prevs = vec![p.name.clone()];
     };
-    q
+    res
 }
 
-fn koushin(p: EkiT, v: Vec<EkiT>) -> Vec<EkiT> {
+fn koushin(p: EkiT, v: Vec<EkiT>, lst: Vec<Edge>) -> Vec<EkiT> {
+    fn koushin1(p: &EkiT, q: &EkiT, dist: f32) -> EkiT {
+        let d: f32 = p.shortest + dist;
+        let mut res = EkiT::new(q.name.clone());
+        if d < q.shortest {
+            res.shortest = d;
+            res.prevs = vec![p.name.clone()];
+        };
+        res
+    }
     if v.is_empty() {
         Vec::<EkiT>::new()
-    } else if &p.name == &v[0].name {
-        v[1..].to_vec()
     } else {
-        let mut l = vec![v[0].clone()];
-        l.append(&mut koushin(p, v[1..].to_vec()));
+        let dist = get_ekikan_kyori(&lst, &p.name, &v[0].name);
+        let mut l = vec![koushin1(&p, &v[0], dist)];
+        l.append(&mut koushin(p, v[1..].to_vec(), lst));
         l
     }
 }
@@ -121,7 +143,7 @@ fn sum_list(lst: Vec<i32>) -> Vec<i32> {
         match lst.len() {
             0 => res,
             _ => {
-                let t = total+lst[0];
+                let t = total + lst[0];
                 res.push(t);
                 res.append(&mut hojo(lst[1..].to_vec(), t));
                 res
@@ -265,7 +287,7 @@ mod tests {
         let tail = p.name.clone();
         let head = q.name.clone();
         assert_eq!(
-            koushin1(p, q, get_ekikan_kyori(&lst, &tail, &head)),
+            koushin1(&p, &q, get_ekikan_kyori(&lst, &tail, &head)),
             expected
         )
     }
@@ -296,7 +318,7 @@ mod tests {
         let tail = p.name.clone();
         let head = q.name.clone();
         assert_eq!(
-            koushin1(p, q, get_ekikan_kyori(&lst, &tail, &head)),
+            koushin1(&p, &q, get_ekikan_kyori(&lst, &tail, &head)),
             expected
         )
     }
@@ -307,18 +329,58 @@ mod tests {
             shortest: 0.5,
             prevs: vec!["原宿".to_string()],
         };
-        let mut lst = vec![EkiT::new("代々木".to_string()); 2];
-        lst.push(EkiT::new("原宿".to_string()));
-        let expected = vec![EkiT::new("代々木".to_string()); 2];
-        assert_eq!(koushin(p, lst), expected)
+        let lst_dist: Vec<Edge> = vec![Edge {
+            tail: "原宿".to_string(),
+            head: "代々木".to_string(),
+            line: "どっか".to_string(),
+            dist: 1.0,
+            time: 30,
+        }];
+        let lst = vec![EkiT::new("代々木".to_string())];
+        let expected = vec![EkiT {
+            name: "代々木".to_string(),
+            shortest: 1.5,
+            prevs: vec!["原宿".to_string()],
+        }];
+        assert_eq!(koushin(p, lst, lst_dist), expected)
     }
     #[test]
     fn koushin_2() {
         let p = EkiT::new("原宿".to_string());
         let lst = vec![];
         let expected = vec![];
-        assert_eq!(koushin(p, lst), expected)
+        let lst_dist: Vec<Edge> = vec![Edge {
+            tail: "原宿".to_string(),
+            head: "代々木".to_string(),
+            line: "どっか".to_string(),
+            dist: 1.0,
+            time: 30,
+        }];
+        assert_eq!(koushin(p, lst, lst_dist), expected)
     }
+    #[test]
+    fn koushin_3() {
+        let p = EkiT {
+            name: "原宿".to_string(),
+            shortest: 0.5,
+            prevs: vec!["原宿".to_string()],
+        };
+        let lst_dist: Vec<Edge> = vec![Edge {
+            tail: "原宿".to_string(),
+            head: "代々木".to_string(),
+            line: "どっか".to_string(),
+            dist: 1.0,
+            time: 30,
+        }];
+        let lst = vec![EkiT::new("溜池山王".to_string())];
+        let expected = vec![EkiT {
+            name: "溜池山王".to_string(),
+            shortest: f32::INFINITY,
+            prevs: vec![],
+        }];
+        assert_eq!(koushin(p, lst, lst_dist), expected)
+    }
+
     #[test]
     fn saitan_wo_bunri_1() {
         let p = EkiT {
