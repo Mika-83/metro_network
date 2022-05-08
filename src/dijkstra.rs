@@ -161,16 +161,75 @@ fn dijkstra_main(lst: Vec<EkiT>, lst_ekikan: &Vec<Edge>) -> Vec<EkiT> {
             let mut res = vec![closest_node.clone()];
             res.append(&mut dijkstra_main(
                 koushin(closest_node, lst_rest, lst_ekikan),
-                lst_ekikan
+                lst_ekikan,
             ));
             res
         }
     }
 }
 
+fn dijkstra(
+    lst_node: Vec<Node>,
+    lst_ekikan: Vec<Edge>,
+    start_roman: &str,
+    destination_roman: &str,
+) -> EkiT {
+    fn seiretsu(lst: &[Node]) -> Vec<Node> {
+        match lst.len() {
+            0 => Vec::<Node>::new(),
+            _ => insert_node(
+                lst[lst.len() - 1].clone(),
+                seiretsu(&lst[..lst.len() - 1].to_vec()),
+            ),
+        }
+    }
+    fn romaji_to_kanji(lst: &[Node], name: &String) -> String {
+        if lst.is_empty() {
+            "".to_string()
+        } else if &lst[0].roman == name {
+            lst[0].kanji.clone()
+        } else {
+            romaji_to_kanji(&lst[1..].to_vec(), name)
+        }
+    }
+    fn make_initial_eki_list(lst: &[Node], name: &String) -> Vec<EkiT> {
+        let f = |x: &Node| {
+            if &x.kanji == name {
+                EkiT {
+                    name: x.kanji.clone(),
+                    shortest: 0.0,
+                    prevs: vec![x.kanji.clone()],
+                }
+            } else {
+                EkiT::new(x.kanji.clone())
+            }
+        };
+        lst.iter().map(f).collect::<Vec<EkiT>>()
+    }
+    fn find_dest(lst: &[EkiT], name: &String) -> EkiT {
+        match lst.len() {
+            0 => EkiT::new(name.clone()),
+            _ => {
+                if &lst[0].name == name {
+                    lst[0].clone()
+                } else {
+                    find_dest(&lst[1..].to_vec(), name)
+                }
+            }
+        }
+    }
+    let candidate = make_initial_eki_list(
+        &seiretsu(&lst_node),
+        &romaji_to_kanji(&lst_node, &start_roman.to_string()),
+    );
+    let res = dijkstra_main(candidate, &lst_ekikan);
+    let dest = romaji_to_kanji(&lst_node, &destination_roman.to_string());
+    find_dest(&res, &dest)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::get_metro_info::get_ekikan_kyori;
+    use crate::get_metro_info::{get_ekikan_kyori, romaji_to_kanji};
     use crate::model::{read, read_edge, read_node, Edge};
 
     use super::*;
@@ -505,7 +564,7 @@ mod tests {
             EkiT::new("代々木公園".to_string()),
             EkiT::new("明治神宮前".to_string()),
             EkiT::new("京橋".to_string()),
-            EkiT::new("表参道".to_string())
+            EkiT::new("表参道".to_string()),
         ];
         let lst = shokika(lst, &"代々木公園".to_string());
         let expect = vec![
@@ -524,12 +583,44 @@ mod tests {
                 shortest: 2.1,
                 prevs: vec!["明治神宮前".to_string()],
             },
-            EkiT{
+            EkiT {
                 name: "京橋".to_string(),
                 shortest: f32::INFINITY,
                 prevs: vec![],
-            }
+            },
         ];
         assert_eq!(dijkstra_main(lst, &lst_ekikan), expect)
+    }
+    #[test]
+    fn dijkstra_1() {
+        let lst_ekikan = read_edge(read("data/ekikan.csv"));
+        let lst = vec![
+            Node {
+                kanji: "代々木公園".to_string(),
+                kana: "よよぎこうえん".to_string(),
+                roman: "yoyogikouen".to_string(),
+                shozoku: "".to_string(),
+            },
+            Node {
+                kanji: "明治神宮前".to_string(),
+                kana: "めいじじんぐうまえ".to_string(),
+                roman: "meijijinguumae".to_string(),
+                shozoku: "".to_string(),
+            },
+            Node {
+                kanji: "表参道".to_string(),
+                kana: "おもてさんどう".to_string(),
+                roman: "omotesando".to_string(),
+                shozoku: "".to_string(),
+            },
+        ];
+        let expect = EkiT {
+            name: "表参道".to_string(),
+            shortest: 2.1,
+            prevs: vec!["明治神宮前".to_string()],
+        };
+        let start_roman = "yoyogikouen";
+        let destination_roman = "omotesando";
+        assert_eq!(dijkstra(lst, lst_ekikan, start_roman, destination_roman), expect)
     }
 }

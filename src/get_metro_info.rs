@@ -1,7 +1,7 @@
 use crate::model::{Node, Edge};
 
 #[warn(dead_code)]
-fn romaji_to_kanji(lst: &Vec<Node>, name: &String) -> String {
+pub fn romaji_to_kanji(lst: &[Node], name: &String) -> String {
     if lst.is_empty() {
         "".to_string()
     } else if &lst[0].roman == name {
