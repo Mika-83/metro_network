@@ -372,12 +372,22 @@ mod tests {
             dist: 1.0,
             time: 30,
         }];
-        let lst = vec![EkiT::new("溜池山王".to_string())];
-        let expected = vec![EkiT {
-            name: "溜池山王".to_string(),
-            shortest: f32::INFINITY,
-            prevs: vec![],
-        }];
+        let lst = vec![
+            EkiT::new("溜池山王".to_string()),
+            EkiT::new("代々木".to_string()),
+        ];
+        let expected = vec![
+            EkiT {
+                name: "溜池山王".to_string(),
+                shortest: f32::INFINITY,
+                prevs: vec![],
+            },
+            EkiT {
+                name: "代々木".to_string(),
+                shortest: 1.5,
+                prevs: vec!["原宿".to_string()],
+            },
+        ];
         assert_eq!(koushin(p, lst, lst_dist), expected)
     }
 
