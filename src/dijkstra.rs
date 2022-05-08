@@ -115,6 +115,22 @@ fn saitan_wo_bunri(lst: Vec<EkiT>) -> (EkiT, Vec<EkiT>) {
     }
 }
 
+fn sum_list(lst: Vec<i32>) -> Vec<i32> {
+    fn hojo(lst: Vec<i32>, total: i32) -> Vec<i32> {
+        let mut res = Vec::<i32>::new();
+        match lst.len() {
+            0 => res,
+            _ => {
+                let t = total+lst[0];
+                res.push(t);
+                res.append(&mut hojo(lst[1..].to_vec(), t));
+                res
+            }
+        }
+    }
+    hojo(lst, 0)
+}
+
 fn dijkstra() {}
 
 #[cfg(test)]
@@ -343,5 +359,11 @@ mod tests {
         let v = vec![p.clone()];
         let expected = (p, Vec::<EkiT>::new());
         assert_eq!(saitan_wo_bunri(v), expected)
+    }
+    #[test]
+    fn sum_list_1() {
+        let v = vec![3, 2, 1, 4];
+        let expected = vec![3, 5, 6, 10];
+        assert_eq!(sum_list(v), expected)
     }
 }
