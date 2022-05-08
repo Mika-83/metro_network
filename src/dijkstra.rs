@@ -161,7 +161,7 @@ fn dijkstra_main(lst: Vec<EkiT>, lst_ekikan: &Vec<Edge>) -> Vec<EkiT> {
             let mut res = vec![closest_node.clone()];
             res.append(&mut dijkstra_main(
                 koushin(closest_node, lst_rest, &lst_ekikan),
-                &lst_ekikan
+                lst_ekikan
             ));
             res
         }
