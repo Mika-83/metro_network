@@ -3,7 +3,7 @@ use crate::model::Node;
 #[derive(Debug, PartialEq, Clone)]
 pub struct EkiT {
     pub name: String,
-    pub shordist: f32,
+    pub shortest: f32,
     pub prevs: Vec<String>,
 }
 
@@ -11,7 +11,7 @@ impl EkiT {
     pub fn new(name: String) -> EkiT {
         EkiT {
             name: name,
-            shordist: f32::INFINITY,
+            shortest: f32::INFINITY,
             prevs: Vec::<String>::new(),
         }
     }
@@ -33,7 +33,7 @@ fn shokika(mut lst: Vec<EkiT>, name: &String) -> Vec<EkiT> {
         0 => Vec::new(),
         _ => {
             if &lst[0].name == name {
-                lst[0].shordist = 0.0;
+                lst[0].shortest = 0.0;
                 lst[0].prevs = vec![name.clone()];
                 lst
             } else {
@@ -76,9 +76,9 @@ fn seiretsu(lst: Vec<Node>) -> Vec<Node> {
 }
 
 fn koushin1(p: EkiT, mut q: EkiT, dist: f32) -> EkiT {
-    let d: f32 = p.shordist + dist;
-    if d < q.shordist {
-        q.shordist = d;
+    let d: f32 = p.shortest + dist;
+    if d < q.shortest {
+        q.shortest = d;
         q.prevs = vec![p.name.clone()];
     };
     q
@@ -93,6 +93,25 @@ fn koushin(p: EkiT, v: Vec<EkiT>) -> Vec<EkiT> {
         let mut l = vec![v[0].clone()];
         l.append(&mut koushin(p, v[1..].to_vec()));
         l
+    }
+}
+
+// 空リストが渡されたときエラーを返すようにしたい
+fn saitan_wo_bunri(lst: Vec<EkiT>) -> (EkiT, Vec<EkiT>) {
+    match lst.len() {
+        0 => (EkiT::new("".to_string()), Vec::<EkiT>::new()),
+        1 => (lst[0].clone(), Vec::<EkiT>::new()),
+        _ => {
+            let first = lst[0].clone();
+            let mut rem = saitan_wo_bunri(lst[1..].to_vec());
+            if rem.0.shortest < first.shortest {
+                rem.1.push(first);
+                (rem.0, rem.1)
+            } else {
+                rem.1.push(rem.0);
+                (first, rem.1)
+            }
+        }
     }
 }
 
@@ -113,7 +132,7 @@ mod tests {
             eki_lst[0],
             EkiT {
                 name: "代々木上原".to_string(),
-                shordist: f32::INFINITY,
+                shortest: f32::INFINITY,
                 prevs: Vec::<String>::new()
             }
         )
@@ -126,7 +145,7 @@ mod tests {
             eki_lst[167],
             EkiT {
                 name: "和光市".to_string(),
-                shordist: f32::INFINITY,
+                shortest: f32::INFINITY,
                 prevs: Vec::<String>::new()
             }
         )
@@ -139,7 +158,7 @@ mod tests {
             shokika(eki_lst, &"和光市".to_string())[167],
             EkiT {
                 name: "和光市".to_string(),
-                shordist: 0.0,
+                shortest: 0.0,
                 prevs: vec!["和光市".to_string()]
             }
         )
@@ -199,7 +218,7 @@ mod tests {
     fn koushin1_1() {
         let p = EkiT {
             name: "原宿".to_string(),
-            shordist: 0.0,
+            shortest: 0.0,
             prevs: vec!["原宿".to_string()],
         };
         let q = EkiT::new("代々木".to_string());
@@ -212,7 +231,7 @@ mod tests {
         }];
         let expected = EkiT {
             name: "代々木".to_string(),
-            shordist: 1.0,
+            shortest: 1.0,
             prevs: vec!["原宿".to_string()],
         };
         let tail = p.name.clone();
@@ -226,12 +245,12 @@ mod tests {
     fn koushin1_2() {
         let p = EkiT {
             name: "原宿".to_string(),
-            shordist: 0.5,
+            shortest: 0.5,
             prevs: vec!["原宿".to_string()],
         };
         let q = EkiT {
             name: "代々木".to_string(),
-            shordist: 2.0,
+            shortest: 2.0,
             prevs: vec!["秋葉原".to_string()],
         };
         let lst: Vec<Edge> = vec![Edge {
@@ -243,7 +262,7 @@ mod tests {
         }];
         let expected = EkiT {
             name: "代々木".to_string(),
-            shordist: 1.5,
+            shortest: 1.5,
             prevs: vec!["原宿".to_string()],
         };
         let tail = p.name.clone();
@@ -257,7 +276,7 @@ mod tests {
     fn koushin_1() {
         let p = EkiT {
             name: "原宿".to_string(),
-            shordist: 0.5,
+            shortest: 0.5,
             prevs: vec!["原宿".to_string()],
         };
         let mut lst = vec![EkiT::new("代々木".to_string()); 2];
@@ -271,5 +290,58 @@ mod tests {
         let lst = vec![];
         let expected = vec![];
         assert_eq!(koushin(p, lst), expected)
+    }
+    #[test]
+    fn saitan_wo_bunri_1() {
+        let p = EkiT {
+            name: "原宿".to_string(),
+            shortest: 0.5,
+            prevs: vec!["原宿".to_string()],
+        };
+        let q = EkiT {
+            name: "代々木".to_string(),
+            shortest: 2.0,
+            prevs: vec!["秋葉原".to_string()],
+        };
+        let r = EkiT {
+            name: "溜池山王".to_string(),
+            shortest: 1.0,
+            prevs: vec!["原宿".to_string()],
+        };
+        let v = vec![r.clone(), q.clone(), p.clone()];
+        let expected = (p, vec![q, r]);
+        assert_eq!(saitan_wo_bunri(v), expected)
+    }
+    #[test]
+    fn saitan_wo_bunri_2() {
+        let p = EkiT {
+            name: "原宿".to_string(),
+            shortest: 0.5,
+            prevs: vec!["原宿".to_string()],
+        };
+        let q = EkiT {
+            name: "代々木".to_string(),
+            shortest: 2.0,
+            prevs: vec!["秋葉原".to_string()],
+        };
+        let r = EkiT {
+            name: "溜池山王".to_string(),
+            shortest: 0.5,
+            prevs: vec!["原宿".to_string()],
+        };
+        let v = vec![r.clone(), q.clone(), p.clone()];
+        let expected = (r, vec![q, p]);
+        assert_eq!(saitan_wo_bunri(v), expected)
+    }
+    #[test]
+    fn saitan_wo_bunri_3() {
+        let p = EkiT {
+            name: "原宿".to_string(),
+            shortest: 0.5,
+            prevs: vec!["原宿".to_string()],
+        };
+        let v = vec![p.clone()];
+        let expected = (p, Vec::<EkiT>::new());
+        assert_eq!(saitan_wo_bunri(v), expected)
     }
 }
