@@ -18,14 +18,7 @@ impl EkiT {
 }
 
 fn make_eki_list(lst: &Vec<Node>) -> Vec<EkiT> {
-    match lst.len() {
-        0 => Vec::<EkiT>::new(),
-        _ => {
-            let mut l: Vec<EkiT> = vec![EkiT::new(lst[0].kanji.clone())];
-            l.append(&mut make_eki_list(&lst[1..].to_vec()));
-            l
-        }
-    }
+    lst.iter().map(|n| EkiT::new(n.kanji.clone())).collect::<Vec<EkiT>>()
 }
 
 fn shokika(mut lst: Vec<EkiT>, name: &String) -> Vec<EkiT> {
@@ -43,6 +36,13 @@ fn shokika(mut lst: Vec<EkiT>, name: &String) -> Vec<EkiT> {
             }
         }
     }
+}
+
+fn make_initial_eki_list(lst: &Vec<Node>, name: &String) -> Vec<EkiT> {
+    let f = |x: &Node| {if &x.kanji == name {
+        EkiT{name: x.kanji.clone(), shortest: 0.0, prevs: vec![x.kanji.clone()]}
+    } else {EkiT::new(x.kanji.clone())}};
+    lst.into_iter().map(f).collect::<Vec<EkiT>>()
 }
 
 #[warn(dead_code)]
@@ -172,6 +172,18 @@ mod tests {
         let eki_lst = make_eki_list(&lst);
         assert_eq!(
             shokika(eki_lst, &"和光市".to_string())[167],
+            EkiT {
+                name: "和光市".to_string(),
+                shortest: 0.0,
+                prevs: vec!["和光市".to_string()]
+            }
+        )
+    }
+    #[test]
+    fn make_initial_eki_list_1() {
+        let lst = read_node(read("data/eki.csv"));
+        assert_eq!(
+            make_initial_eki_list(&lst, &"和光市".to_string())[167],
             EkiT {
                 name: "和光市".to_string(),
                 shortest: 0.0,
